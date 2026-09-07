@@ -42,9 +42,17 @@ pre code { white-space: pre; background: none; border: 0; padding: 0; }
 .btn:hover { transform: translateY(-1px); border-color: var(--forge); color: var(--text); }
 .btn--primary { background: var(--forge); border-color: var(--forge); color: #14060a; font-weight: 600; }
 .btn--primary:hover { background: var(--forge-soft); border-color: var(--forge-soft); color: #14060a; }
-.scene { position: relative; margin: 2.5rem 0 1rem; aspect-ratio: 16 / 5; min-height: 190px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--ink-raised); overflow: hidden; }
+/* The scene is the page's backdrop, not a figure inside it: it fills the viewport and the hero copy sits over it. */
+.stage { position: relative; min-height: min(88vh, 820px); display: grid; align-items: end; overflow: hidden; border-bottom: 1px solid var(--line); }
+.scene { position: absolute; inset: 0; z-index: 0; }
 .scene canvas { display: block; width: 100%; height: 100%; }
-.scene__fallback { position: absolute; inset: 0; display: grid; place-items: center; padding: 1.5rem; margin: 0; text-align: center; color: var(--text-dim); font-size: .92rem; }
+.scene__fallback { position: absolute; inset: auto 0 1rem; display: grid; place-items: center; padding: 1.5rem; margin: 0; text-align: center; color: var(--text-dim); font-size: .92rem; }
+.scene__fallback--quiet { display: none; }
+.scene__hint { position: absolute; right: 1rem; bottom: 1rem; z-index: 2; font-family: var(--mono); font-size: .72rem; color: var(--text-faint); pointer-events: none; }
+/* A vignette so type over the scene stays readable wherever the camera happens to be. */
+.stage::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(to top, var(--ink) 2%, rgba(7,8,11,.72) 34%, rgba(7,8,11,.15) 62%, rgba(7,8,11,.55) 100%); }
+.stage .hero { position: relative; z-index: 2; padding-bottom: clamp(2.5rem, 6vw, 4.5rem); }
+@media (max-width: 720px) { .stage { min-height: min(78vh, 640px); } }
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; margin: 2rem 0 0; }
 .stat { background: var(--ink-raised); padding: 1.05rem 1.2rem; }
 .stat dt { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--text-faint); margin-bottom: .25rem; }

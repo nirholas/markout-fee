@@ -43,6 +43,13 @@
 </header>
 
 <main id="main">
+  <div class="stage">
+    <div class="scene">
+      <canvas data-permissions="{&quot;afterRemoveLiquidityReturnsDelta&quot;:false,&quot;afterAddLiquidityReturnsDelta&quot;:false,&quot;afterSwapReturnsDelta&quot;:false,&quot;beforeSwapReturnsDelta&quot;:false,&quot;afterDonate&quot;:false,&quot;beforeDonate&quot;:false,&quot;afterSwap&quot;:true,&quot;beforeSwap&quot;:true,&quot;afterRemoveLiquidity&quot;:false,&quot;beforeRemoveLiquidity&quot;:false,&quot;afterAddLiquidity&quot;:false,&quot;beforeAddLiquidity&quot;:false,&quot;afterInitialize&quot;:true,&quot;beforeInitialize&quot;:false}" aria-hidden="true"></canvas>
+      <p class="scene__fallback">MarkoutFee implements 3 of the fourteen Uniswap v4 callbacks: afterInitialize, beforeSwap, afterSwap.</p>
+    </div>
+    <p class="scene__hint">drag to orbit</p>
+
   <section class="shell hero">
     <p class="eyebrow">Uniswap v4 hook &middot; Order flow and MEV</p>
     <h1>MarkoutFee</h1>
@@ -53,11 +60,6 @@
       <a class="btn" href="/hook.json">Manifest JSON</a>
     </div>
 
-    <div class="scene">
-      <canvas data-permissions="{&quot;afterRemoveLiquidityReturnsDelta&quot;:false,&quot;afterAddLiquidityReturnsDelta&quot;:false,&quot;afterSwapReturnsDelta&quot;:false,&quot;beforeSwapReturnsDelta&quot;:false,&quot;afterDonate&quot;:false,&quot;beforeDonate&quot;:false,&quot;afterSwap&quot;:true,&quot;beforeSwap&quot;:true,&quot;afterRemoveLiquidity&quot;:false,&quot;beforeRemoveLiquidity&quot;:false,&quot;afterAddLiquidity&quot;:false,&quot;beforeAddLiquidity&quot;:false,&quot;afterInitialize&quot;:true,&quot;beforeInitialize&quot;:false}" aria-hidden="true"></canvas>
-      <p class="scene__fallback">MarkoutFee implements 3 of the fourteen Uniswap v4 callbacks: afterInitialize, beforeSwap, afterSwap.</p>
-    </div>
-
     <dl class="stats">
       <div class="stat"><dt>Family</dt><dd>Order flow and MEV</dd></div>
       <div class="stat"><dt>Callbacks</dt><dd>3 of 14</dd></div>
@@ -66,6 +68,7 @@
       <div class="stat"><dt>Licence</dt><dd>MIT</dd></div>
     </dl>
   </section>
+  </div>
 
   <section class="shell">
     <h2 id="how">How it works</h2>
