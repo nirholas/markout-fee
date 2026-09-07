@@ -136,3 +136,18 @@ tr:last-child td { border-bottom: 0; }
 .chart { margin: 0 0 1.25rem; }
 .chart__svg svg { width: 100%; height: auto; display: block; }
 .chart__caption { color: var(--text-faint); font-size: .8rem; margin-top: .4rem; }
+
+.quoter { border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem 1.1rem; margin: 0 0 1.25rem; background: var(--ink-sunken); }
+.quoter__row { display: grid; grid-template-columns: 1fr 1.4fr; gap: 1rem; }
+.quoter__row .field { margin: 0; }
+.quoter__out { display: grid; gap: .2rem; margin-top: 1rem; padding-top: .9rem; border-top: 1px solid var(--line); }
+.quoter__label { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--text-faint); }
+.quoter__result { font-family: var(--mono); font-size: 1.35rem; font-weight: 600; color: var(--forge); word-break: break-all; }
+@media (max-width: 620px) { .quoter__row { grid-template-columns: 1fr; } }
+
+.attempts { list-style: none; margin: 1rem 0 0; padding: 0; display: grid; gap: .4rem; }
+.attempt { display: flex; align-items: baseline; gap: .6rem; font-size: .88rem; padding: .45rem .6rem; border-radius: var(--radius); background: var(--ink-sunken); border: 1px solid var(--line); }
+.attempt__badge { font-family: var(--mono); font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; padding: .1rem .4rem; border-radius: 4px; flex: none; }
+.attempt--ok .attempt__badge { color: #4ecdc4; border: 1px solid rgba(78,205,196,.35); }
+.attempt--refused .attempt__badge { color: #ffc44d; border: 1px solid rgba(255,196,77,.35); }
+.attempt__detail { color: var(--text-dim); word-break: break-word; }

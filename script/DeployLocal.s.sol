@@ -37,6 +37,7 @@ contract DeployLocal is Script {
     uint160 internal constant FLAGS = uint160(Hooks.AFTER_INITIALIZE_FLAG | Hooks.BEFORE_SWAP_FLAG | Hooks.AFTER_SWAP_FLAG);
     address internal constant CREATE2_DEPLOYER = 0x4e59b44847b379578588920cA78FbF26c0B4956C;
     uint160 internal constant SQRT_PRICE_1_1 = 79228162514264337593543950336;
+    uint256 internal constant Q96 = 1 << 96;
 
     PoolManager internal manager;
     DemoToken internal weth;
