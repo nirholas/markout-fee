@@ -1,0 +1,30 @@
+{
+  "name": "markout-fee",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A fee that learns. The pool measures whether its own past trades turned out to be informed, and charges the next one accordingly.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nirholas/markout-fee.git"
+  },
+  "homepage": "https://markout-fee.pages.dev",
+  "keywords": [
+    "uniswap",
+    "uniswap-v4",
+    "uniswap-hooks",
+    "defi",
+    "amm",
+    "solidity",
+    "mev",
+    "dynamic-fee",
+    "markout",
+    "adverse-selection",
+    "oracle-free"
+  ],
+  "scripts": {
+    "build": "node web/build.mjs",
+    "contracts:build": "forge build",
+    "contracts:test": "forge test"
+  }
+}

@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MarkoutFee: A fee that learns. The pool measures whether its own past trades turned out to be informed, and charges the next one accordingly</title>
+<meta name="description" content="A fee that learns. The pool measures whether its own past trades turned out to be informed, and charges the next one accordingly.">
+<link rel="canonical" href="https://markout-fee.pages.dev/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#07080b">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MarkoutFee">
+<meta property="og:title" content="MarkoutFee">
+<meta property="og:description" content="A fee that learns. The pool measures whether its own past trades turned out to be informed, and charges the next one accordingly.">
+<meta property="og:url" content="https://markout-fee.pages.dev/">
+<meta property="og:image" content="https://markout-fee.pages.dev/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="MarkoutFee">
+<meta name="twitter:description" content="A fee that learns. The pool measures whether its own past trades turned out to be informed, and charges the next one accordingly.">
+<meta name="twitter:image" content="https://markout-fee.pages.dev/og.png">
+
+<link rel="stylesheet" href="/assets/site.css">
+<link rel="alternate" type="text/plain" title="For language models" href="/llms.txt">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareSourceCode","name":"MarkoutFee","description":"A fee that learns. The pool measures whether its own past trades turned out to be informed, and charges the next one accordingly.","url":"https://markout-fee.pages.dev","codeRepository":"https://github.com/nirholas/markout-fee","programmingLanguage":"Solidity","runtimePlatform":"Ethereum Virtual Machine","license":"https://opensource.org/licenses/MIT","keywords":"mev, dynamic-fee, markout, adverse-selection, oracle-free","isPartOf":{"@type":"WebSite","name":"HookForge","url":"https://hookforge.pages.dev"}}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="masthead">
+  <div class="shell masthead__inner">
+    <a class="brand" href="/">MarkoutFee</a>
+    <nav aria-label="Primary">
+      <a href="#how">How it works</a>
+      <a href="#using">Using it</a>
+      <a href="#deploy">Deploy</a>
+      <a href="https://github.com/nirholas/markout-fee" rel="noopener">GitHub</a>
+      <a href="https://hookforge.pages.dev" rel="noopener">Catalogue</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <section class="shell hero">
+    <p class="eyebrow">Uniswap v4 hook &middot; Order flow and MEV</p>
+    <h1>MarkoutFee</h1>
+    <p class="lede">A fee that learns. The pool measures whether its own past trades turned out to be informed, and charges the next one accordingly.</p>
+    <div class="cta-row">
+      <a class="btn btn--primary" href="https://github.com/nirholas/markout-fee" rel="noopener">Source on GitHub</a>
+      <a class="btn" href="#using">Use it in a pool</a>
+      <a class="btn" href="/hook.json">Manifest JSON</a>
+    </div>
+
+    <div class="scene">
+      <canvas data-permissions="{&quot;afterRemoveLiquidityReturnsDelta&quot;:false,&quot;afterAddLiquidityReturnsDelta&quot;:false,&quot;afterSwapReturnsDelta&quot;:false,&quot;beforeSwapReturnsDelta&quot;:false,&quot;afterDonate&quot;:false,&quot;beforeDonate&quot;:false,&quot;afterSwap&quot;:true,&quot;beforeSwap&quot;:true,&quot;afterRemoveLiquidity&quot;:false,&quot;beforeRemoveLiquidity&quot;:false,&quot;afterAddLiquidity&quot;:false,&quot;beforeAddLiquidity&quot;:false,&quot;afterInitialize&quot;:true,&quot;beforeInitialize&quot;:false}" aria-hidden="true"></canvas>
+      <p class="scene__fallback">MarkoutFee implements 3 of the fourteen Uniswap v4 callbacks: afterInitialize, beforeSwap, afterSwap.</p>
+    </div>
+
+    <dl class="stats">
+      <div class="stat"><dt>Family</dt><dd>Order flow and MEV</dd></div>
+      <div class="stat"><dt>Callbacks</dt><dd>3 of 14</dd></div>
+      <div class="stat"><dt>Fee</dt><dd>dynamic</dd></div>
+      <div class="stat"><dt>Admin keys</dt><dd>none</dd></div>
+      <div class="stat"><dt>Licence</dt><dd>MIT</dd></div>
+    </dl>
+  </section>
+
+  <section class="shell">
+    <h2 id="how">How it works</h2>
+      <p>Every dynamic-fee hook published so far prices a swap from something observable at the moment it arrives: the size, the recent volatility, the gas it bid, the distance from an oracle. All of those are proxies for the question that actually matters, which is whether the person on the other side knew something. None of them measure it, because at the moment a swap arrives that fact has not happened yet.</p>
+      <p>It has happened a few seconds later. If a swap pushed the price down and the price kept falling, the seller was right and the liquidity that filled them lost; that is an informed trade, and it is the cost the LP literature calls adverse selection. If the price came back, the swap was noise and the fee it paid was pure revenue.</p>
+      <p>This is the markout that every market maker computes on their own flow, and a pool has everything needed to compute it: the tick it was left at, and the tick it is at now. So this hook grades each swap after the fact. On the next swap it compares the current tick to the tick the previous swap left behind, decides whether that swap was informed, and folds the verdict into an exponentially weighted average.</p>
+      <p>The fee it quotes is: fee = baseFee + maxSurcharge * toxicity A pool whose flow is mostly retail converges toward `baseFee` and becomes cheap. A pool being picked off converges toward the cap and becomes expensive, without anybody deciding that, and without an oracle to manipulate or a governance process to capture. The score is public, so anything else on-chain can read a pool's measured toxicity rather than guessing at it.</p>
+      <p>Two details keep the measurement honest. A verdict is only recorded once `minHorizon` seconds have passed, because a comparison inside the same block is measuring the swap's own price impact rather than what happened next. And the verdict is graded by magnitude rather than treated as a coin flip: a move that continues by a tenth of a tick is weak evidence, a move that continues by a hundred ticks is strong, so the observation is scaled and clamped instead of being rounded to a yes or a no.</p>
+      <p>{FlowClassifierHook} measures a related quantity and deliberately does nothing with it; this hook is the other half of that pair, the one that acts on what it measures. The hook takes no fee for itself, custodies nothing, and has no privileged role. `baseFee`, the cap, the smoothing and the horizon are fixed before the pool exists and can never be changed.</p>
+
+    <div class="callout callout--prior"><h3>Prior art</h3><p>Dynamic fees keyed on realized volatility, swap size, price movement or an oracle gap are all well covered, and markout is the standard way a market maker grades its own flow off-chain. Computing markout on-chain, from the pool's own tick history, and feeding it back as the pool's fee, is the contribution here. It is the difference between reacting to a proxy for adverse selection and measuring the thing itself.</p></div>
+    <div class="callout callout--warn"><h3>Where it does not help</h3><p>The verdict on a swap arrives with the next swap, so a pool that trades once a day prices today's flow on yesterday's evidence, and a pool with no second swap never grades the first. It is a lagging signal by construction: a regime change is paid for at the old rate until the average catches up. Note also that a sustained one-directional run grades as informed, because every swap in it is followed by one pushing the same way.</p>
+      <p>That is the intended reading rather than a flaw, but it does mean a pool tracking a strong trend will quote its trend-following flow expensively even when that flow is not picking anyone off.</p></div>
+
+    <h2 id="using">Using it</h2>
+    <p>
+      Uniswap v4 removed <code>hookData</code> from <code>initialize</code>, so per-pool parameters arrive out of band.
+      Fix them for a pool key whose pool does not exist yet, then initialize. Nobody can change them afterwards,
+      including you.
+    </p>
+    <pre><code>hook.configure(
+    key,
+    MarkoutFeeHook.Config({
+        baseFee: /* uint24 */ 0,
+        maxSurcharge: /* uint24 */ 0,
+        alphaWad: /* uint64 */ 0,
+        minHorizon: /* uint32 */ 0,
+        saturationTicks: /* uint24 */ 0
+    })
+);
+
+poolManager.initialize(key, startingSqrtPriceX96);</code></pre>
+    <p>The pool's <code>fee</code> field must be <code>LPFeeLibrary.DYNAMIC_FEE_FLAG</code>. The hook rejects a pool initialized without it, which is the most common integration failure.</p>
+
+    <h3>Parameters</h3>
+    <table>
+        <thead><tr><th>Parameter</th><th>Type</th><th>Units</th></tr></thead>
+        <tbody><tr><td><code>baseFee</code></td><td><code>uint24</code></td><td>hundredths of a bip (<code>3000</code> = 0.30%)</td></tr>
+          <tr><td><code>maxSurcharge</code></td><td><code>uint24</code></td><td>hundredths of a bip (<code>3000</code> = 0.30%)</td></tr>
+          <tr><td><code>alphaWad</code></td><td><code>uint64</code></td><td>fixed point, <code>1e18</code> = 1.0</td></tr>
+          <tr><td><code>minHorizon</code></td><td><code>uint32</code></td><td>seconds</td></tr>
+          <tr><td><code>saturationTicks</code></td><td><code>uint24</code></td><td>ticks</td></tr></tbody>
+      </table>
+
+    <h3>From TypeScript</h3>
+    <pre><code>npm i @hookforge/sdk
+
+import {getHook, hookAddress, poolKeyFor} from "@hookforge/sdk";
+
+const hook = getHook("markout-fee");
+const key  = poolKeyFor({
+  hook: hookAddress("markout-fee", 8453),   // Base
+  currencyA: USDC, currencyB: WETH,
+  tickSpacing: 60, dynamicFee: true,
+});</code></pre>
+
+    <h2>What it reverts with</h2>
+    <table>
+        <thead><tr><th>Error</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>FeeTooLarge(uint24)</code></td><td>A fee was configured above the protocol maximum of 100%.</td></tr>
+          <tr><td><code>InvalidSaturation()</code></td><td><code>saturationTicks</code> of zero would make every move maximally informed.</td></tr>
+          <tr><td><code>InvalidSmoothing()</code></td><td><code>alphaWad</code> must be in (0, 1e18]: zero never learns, above one overshoots.</td></tr>
+          <tr><td><code>NotDynamicFee()</code></td><td>The hook was attempted to be initialized with a non-dynamic fee.</td></tr>
+          <tr><td><code>PoolAlreadyInitialized()</code></td><td>The pool already exists, so its configuration is final.</td></tr>
+          <tr><td><code>PoolNotConfigured()</code></td><td>The pool was initialized without a configuration for this hook.</td></tr>
+          <tr><td><code>SurchargeTooLarge()</code></td><td><code>baseFee + maxSurcharge</code> must leave room under the 100% protocol maximum.</td></tr></tbody>
+      </table>
+
+    <h2>The callbacks it claims</h2>
+    <p>
+      Uniswap v4 reads a hook's permissions from the low fourteen bits of its own address, which is why deploying one
+      means mining a CREATE2 salt. This hook claims 3, so every deployment of it has an address ending
+      in <code>0x10c0</code>.
+    </p>
+    <ul class="flags"><li class="flag">beforeInitialize</li><li class="flag flag--on">afterInitialize</li><li class="flag">beforeAddLiquidity</li><li class="flag">afterAddLiquidity</li><li class="flag">beforeRemoveLiquidity</li><li class="flag">afterRemoveLiquidity</li><li class="flag flag--on">beforeSwap</li><li class="flag flag--on">afterSwap</li><li class="flag">beforeDonate</li><li class="flag">afterDonate</li><li class="flag">beforeSwapReturnsDelta</li><li class="flag">afterSwapReturnsDelta</li><li class="flag">afterAddLiquidityReturnsDelta</li><li class="flag">afterRemoveLiquidityReturnsDelta</li></ul>
+
+    <h2>It says what it is, on-chain</h2>
+    <p>
+      Nothing about a hook's address tells an indexer, a wallet, a router or an agent what the pool does, which is why
+      hook discovery today is a curated list. This hook answers for itself, in one <code>eth_call</code>, with no
+      registry in the loop.
+    </p>
+    <pre><code>cast call $HOOK "hookName()(string)"    # MarkoutFee
+cast call $HOOK "specURI()(string)"     # https://markout-fee.pages.dev/hook.json
+cast call $HOOK "hookTags()(string[])"  # mev, dynamic-fee, markout, adverse-selection, oracle-free</code></pre>
+
+    <h2 id="deploy">Build, test and deploy</h2>
+    <pre><code>git clone --recurse-submodules https://github.com/nirholas/markout-fee
+cd markout-fee
+forge build &amp;&amp; forge test
+
+# Dry run: mines the salt, prints the address, sends nothing.
+forge script script/Deploy.s.sol --rpc-url $RPC_URL
+
+# For real.
+forge script script/Deploy.s.sol --rpc-url $RPC_URL --broadcast --verify</code></pre>
+
+    <div class="callout callout--warn">
+      <h3>Status</h3>
+      <p>
+        <strong>Unaudited.</strong> Built to an audited shape, on OpenZeppelin's audited hook bases, and tested against
+        a real <code>PoolManager</code>. No third party has reviewed it. Read "where it does not help" above before
+        putting money behind it. Not affiliated with Uniswap Labs.
+      </p>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="shell">
+    <p>
+      <a href="https://github.com/nirholas/markout-fee" rel="noopener">Source</a> &middot;
+      <a href="/hook.json">Manifest</a> &middot;
+      <a href="/llms.txt">llms.txt</a> &middot;
+      <a href="https://hookforge.pages.dev" rel="noopener">The rest of the catalogue</a>
+    </p>
+    <p>MIT licensed. Not affiliated with Uniswap Labs.</p>
+  </div>
+</footer>
+<script type="module" src="/assets/scene.js"></script>
+</body>
+</html>
